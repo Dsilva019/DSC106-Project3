@@ -1,2 +1,10 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script>
+    import Globe from '../components/Globe.svelte'
+</script>
+
+
+<h1 style="text-align: center; font-family: Arial, sans-serif; font-size: 32px; margin-top: 50px;">Covid-19 Per Coutnry</h1>
+
+<main>
+    <Globe/>
+</main>
