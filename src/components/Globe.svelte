@@ -59,6 +59,13 @@
       }));
   
       let map = svg.append("g");
+
+
+      //COVID FUNCTIONALITY
+      const colorScale = d3.scaleSequentialLog()
+        .domain([1, d3.max(Object.values(covidCases))])
+        .range(["green", "orange", "red"]);
+
   
       map.append("g")
         .attr("class", "countries")
@@ -66,7 +73,11 @@
         .data(data.features)
         .enter().append("path")
         .attr("d", path)
-        .attr("fill", "white")
+        // Set fill based on COVID-19 cases
+        .attr("fill", d => {
+        const cases = covidCases[d.id] || 0; // Replace d.id with the correct identifier
+        return colorScale(cases);
+        })
         .style('stroke', 'black')
         .style('stroke-width', 0.3)
         .style("opacity", 0.8);
