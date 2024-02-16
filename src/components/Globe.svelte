@@ -1,13 +1,42 @@
 <script>
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
-    import worldData from './world.json'; // Ensure this path is correct
+    import worldData from './world.json';
+    import covidCases from './country.json';
   
     onMount(() => {
-      renderGlobe(worldData);
+      renderGlobe(worldData, covidCases);
     });
-  
-    function renderGlobe(data) {
+
+    function debounce(func, wait, immediate) {
+  let timeout;
+  return function() {
+    const context = this, args = arguments;
+    const later = function() {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    const callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+}
+
+// Optimized mouseover handler
+const handleMouseover = debounce(function(event, d) {
+  const countryData = covidCases[d.properties.name];
+  console.log(countryData);
+  const cases = countryData ? countryData['Total Cases'] : 0;
+  const gdp = countryData ? countryData['GDP ($ per capita)'] : "N/A";
+  d3.select("#tooltip")
+    .html(`Country: ${d.properties.name}<br>GDP: ${gdp}<br>Total Cases: ${cases}`)
+    .style("left", (event.pageX + 10) + "px")
+    .style("top", (event.pageY - 28) + "px")
+    .style("visibility", "visible");
+}, 500); // Adjust debounce time as needed
+
+    function renderGlobe(data, covidCases) {
       const mapElement = document.querySelector("#map");
       if (!mapElement) {
         console.error('Map element not found');
@@ -63,25 +92,28 @@
 
       //COVID FUNCTIONALITY
       const colorScale = d3.scaleSequentialLog()
-        .domain([1, d3.max(Object.values(covidCases))])
-        .range(["green", "orange", "red"]);
-
+      .domain([1, d3.max(Object.values(covidCases), country => country['Total Cases'])])
+      .range(["#008000","#FF0000"]);
   
       map.append("g")
-        .attr("class", "countries")
-        .selectAll("path")
-        .data(data.features)
-        .enter().append("path")
-        .attr("d", path)
-        // Set fill based on COVID-19 cases
-        .attr("fill", d => {
-        const cases = covidCases[d.id] || 0; // Replace d.id with the correct identifier
-        return colorScale(cases);
-        })
-        .style('stroke', 'black')
-        .style('stroke-width', 0.3)
-        .style("opacity", 0.8);
-  
+  .attr("class", "countries")
+  .selectAll("path")
+  .data(data.features)
+  .enter().append("path")
+  .attr("d", path)
+  .attr("fill", d => {
+    const countryData = covidCases[d.properties.name];
+    const cases = countryData ? countryData['Total Cases'] : 0;
+    return colorScale(cases);
+  })
+  .style('stroke', 'black')
+  .style('stroke-width', 0.3)
+  .style("opacity", 0.8)
+  // Add mouseover and mouseout event listeners
+  .on("mouseover", handleMouseover)
+  .on("mouseout", function() {
+    d3.select("#tooltip").style("visibility", "hidden");
+  });
       // Optional rotate
       d3.timer(function(elapsed) {
         const rotate = projection.rotate();
@@ -97,3 +129,4 @@
   </script>
   
   <div id="map" style="width: 100%;"></div>
+  <div id="tooltip" style="position: absolute; visibility: hidden; background-color: white; border: 1px solid #000; padding: 10px; border-radius: 5px; pointer-events: none;"></div>
