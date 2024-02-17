@@ -34,7 +34,7 @@
     const casesPerHundred = population !== "Unknown" ? ((cases / population) * 100).toFixed(2) : "N/A";
     d3.select("#tooltip")
       .html(
-        `Country: ${d.properties.name}<br>GDP: ${gdp}<br>Total Cases: ${cases}<br>Cases per 100 People: ${casesPerHundred}<br>Population: ${population}`
+        `Country: ${d.properties.name}<br>GDP ($ per capita): ${gdp}<br>Total Cases: ${cases}<br>Cases per 100 People: ${casesPerHundred}<br>Population: ${population}`
       )
       .style("left", event.pageX + 10 + "px")
       .style("top", event.pageY - 28 + "px")
